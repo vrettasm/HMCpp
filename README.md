@@ -17,7 +17,7 @@ Several implementation details are given in:
 
 ### Requirements
 
-   . Boost library is required
+   > Boost library is required
 
 ### Examples
 
