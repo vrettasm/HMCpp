@@ -151,7 +151,7 @@ namespace HamiltonianMC {
 
       // Kinetic energy (inner-product).
       double E_kin = std::inner_product(p.begin(), p.end(), p.begin(), 0.0);
-
+      
       // Evaluate the Hamiltonian equation.
       double H_old = E_old + 0.5*E_kin;
 
@@ -179,12 +179,12 @@ namespace HamiltonianMC {
 
       // Random scale factor is a uniform number from [0.8, 1.2].
       const double _scale = 0.8 + 0.4*rng.uniform<double>();
-
+      
       // Number of leap-frog steps is randomized to avoid choosing a trajectory
       // length that happens to produce a near-periodicity for some variable or
       // combination of variables.
       const int _kappa = static_cast<int>(std::max(2.0, std::round(_scale*kappa)));
-
+      
       // Full (kappa-1) leapfrog steps.
       for (int k = 0; k < _kappa-1; ++k) {
         
@@ -204,7 +204,7 @@ namespace HamiltonianMC {
 
       // Compute the energy at the new point.
       double E_new = func(x_new);
-
+      
       // Check if something went wrong.
       if (not AuxiliaryNum::is_finite(E_new)) {
         throw std::runtime_error(" HMC::run: Unexpected error occured! ");
@@ -227,14 +227,14 @@ namespace HamiltonianMC {
 
       // Compute the new Hamiltonian.
       double H_new = E_new + 0.5*E_kin;
-
+      
       // Compute the difference between the two Hamiltonians.
       double deltaH = H_old - H_new;
 
       // Check for acceptance using the Metropolis-Hastings
       // acceptance criterion.
       if (std::min(1.0, std::exp(deltaH)) > uniform_MHAC[j]) {
-        
+                
         // Start measuring acceptance after burn-in period.
         if (i >= 0) { accepted++; }
         
@@ -269,7 +269,7 @@ namespace HamiltonianMC {
         }
         
       }
-
+      
     } // <-- main loop ends here.
 
     // Get the final time.
