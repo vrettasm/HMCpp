@@ -88,6 +88,62 @@ namespace AuxiliaryNum {
       return df;
     }
     
+    /**
+        This function is used to compute the sum of the values in a container,
+        given two iterators. The function should work similar to std::accumulate().
+        
+        The summation is more accurate than simple sum by keeping a separate running
+        compensation (a variable to accumulate small errors). A slight modification
+        of Kahan's algorithm here is that it also covers the case when the next term
+        to be added is larger in absolute value than the running sum, effectively
+        swapping the role of what is large and what is small.
+
+        Main source: <https://en.wikipedia.org/wiki/Kahan_summation_algorithm>
+
+        @param first: first iterator
+        @param last : last iterator
+        @param sum_ : initial value
+
+        @cite[Neumaier.A] "Rundungsfehleranalyse einiger Verfahren zur Summation
+                           endlicher Summen", Zeitschrift für Angewandte Mathematik
+                           und Mechanik, Volume 54, Issue 1, pp. 39–51, 1974.
+
+        @return The compensated sum of the container values.
+
+        @author Michalis Vrettas, PhD.
+                E-mail: vrettasm@gmail.com */
+    template<typename InputIt, typename VTYPE>
+    inline VTYPE NeumaierSum(InputIt first, InputIt last, VTYPE sum_) {
+      
+      // Initial assignment.
+      sum_ += *first;
+
+      // To avoid overly-aggressive optimizing compilers we delcare
+      // the variables volatile.
+      volatile VTYPE c(0), t(0);
+
+      // A running compensation for lost low-order bits.
+      for (InputIt it = ++first; it != last; ++it) {
+        // Temporary sum value.
+        t = sum_ + *it;
+
+        // Check the magnitude of the value you are about to add
+        // with respect to the sum so far.
+        if (std::abs(sum_) >= std::abs(*it)) {
+          // If sum is bigger, low-order digits of (*it) are lost.
+          c += (sum_ - t) + *it;
+        } else {
+          // Else low-order digits of sum are lost.
+          c += (*it - t) + sum_;
+        }
+
+        // Update the sum.
+        sum_ = t;
+      }
+
+      // Add the compesated residual.
+      return (sum_ + c);
+    }
 }
 
 #endif
