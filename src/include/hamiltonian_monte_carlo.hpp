@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <boost/filesystem.hpp>
 #include "random_number_generator.hpp"
 
 /** @brief Hamiltonian Monte Carlo C++ sampler.
@@ -45,8 +46,11 @@ namespace HamiltonianMC {
           @param func: Reference to an instance of a class which implements
           the negative log posterior likelihood calculation method.
 
-          @param rng: Reference to a random number generator. */
-      HMC(CalculatesLogPosterior& func, RandomNumberGenerator& rng);
+          @param rng: Reference to a random number generator.
+          
+          @param save_path: File to save the runtime data. */
+      HMC(CalculatesLogPosterior& func, RandomNumberGenerator& rng,
+          const boost::filesystem::path& save_path);
 
       /** @brief Set number of samples. */
       void set_n_samples(const int);
@@ -106,6 +110,14 @@ namespace HamiltonianMC {
 
       /** @return a copy of the leap-frog step sizes. */
       std::vector<double> get_leap_step_size() const;
+      
+      /** @brief Saves a record to a txt file.
+
+        It will append the data to the end of the file.
+        If the file does not exist it will create it.
+
+        @param rec the record to be saved. */
+      void saveRecordToTxt(const std::string& rec) const;
 
     private:
 
@@ -123,13 +135,16 @@ namespace HamiltonianMC {
 
       /** Update frequency for display information. */
       int upd_frequency;
-
+      
       /** Reference for the class that computes the log-posterior. */
       CalculatesLogPosterior& func;
 
       /** Random number generator. */
       RandomNumberGenerator& rng;
-
+      
+      /** Root for HMC output files. */
+      boost::filesystem::path save_dir;
+      
       /** Samples from all parameters. */
       std::vector< std::vector<double> > sample;
 

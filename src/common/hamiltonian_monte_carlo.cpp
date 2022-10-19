@@ -1,5 +1,6 @@
 #include <cmath>
 #include <chrono>
+#include <fstream>
 #include <numeric>
 #include <iostream>
 
@@ -8,9 +9,17 @@
 
 namespace HamiltonianMC {
   
-  HMC::HMC(CalculatesLogPosterior& _func, RandomNumberGenerator& _rng):
-           n_samples(10000), burn_in(1000), kappa(100), dtau(1.0e-2),
-           upd_frequency(100), func(_func), rng(_rng) {};
+  HMC::HMC(CalculatesLogPosterior& _func, RandomNumberGenerator& _rng,
+           const boost::filesystem::path& save_path): n_samples(10000),
+           burn_in(1000), kappa(100), dtau(1.0e-2), upd_frequency(100),
+           func(_func), rng(_rng), save_dir(save_path) {
+        
+    // Create the string.
+    const std::string START_LOGGING(" [LOGGING NEW VALUES]");
+    
+    // Save the HEADER in the file.
+    saveRecordToTxt(START_LOGGING);
+  }
 
   void HMC::set_n_samples(const int _n) {
     // Sanity check: positive samples.
@@ -262,21 +271,35 @@ namespace HamiltonianMC {
         // Print info every 'upd_frequency' iterations.
         if (i % upd_frequency == 0) {
           
+          // New string-stream.
+          std::ostringstream oss;
+          
           // Construct information record.
-          std::cout << " Itr = " << i << ", A/R = " << acc_ratio[i]
-                    << ", E = " << E_trace[i] << std::endl;
+          oss << " Itr = " << i << ", Acceptance = " << acc_ratio[i] << ", Energy = " << E_trace[i];
+          
+          // Save the record in the file.
+          saveRecordToTxt(oss.str());
+          
+          // Print to screen the new record.
+          std::cout << oss.str() << std::endl;
 
         }
         
       }
       
     } // <-- main loop ends here.
+    
+    // Create the FINAL string.
+    const std::string STOP_LOGGING(" [LOGGING STOPPED]\n");
+    
+    // Save the STRING in the file.
+    saveRecordToTxt(STOP_LOGGING);
 
     // Get the final time.
     auto tf = std::chrono::steady_clock::now();
     
     // Save Final message in the runtime file.
-    std::cout << "HMC++ finished in "
+    std::cout << "HMC++ finished [" << n_samples << "] in "
               << std::chrono::duration_cast<std::chrono::seconds>(tf - t0).count()
               << " second(s)." << std::endl;
 
@@ -347,6 +370,45 @@ namespace HamiltonianMC {
     }
     
     return leap_step;
+  }
+  
+  void HMC::saveRecordToTxt(const std::string& rec_str) const {
+    
+    // Declare output file stream.
+    std::ofstream data_out;
+        
+    try {
+      // Open file (in append mode).
+      data_out.open(save_dir.string().c_str(), std::ios::app);
+
+      // Create a timestamp.
+      std::time_t tstamp = std::time(nullptr);
+
+      // Char array that will hold the formatted date/time.
+      char mb_str[40];
+
+      // Add the timestamp in the file.
+      if (std::strftime(mb_str, sizeof(mb_str), "%c", std::localtime(&tstamp))) {
+        // Add a record.
+        data_out << "# " << mb_str << ":" << rec_str << std::endl;
+      } else {
+        // If the formatting failed for some reason, add the raw timestamp.
+        data_out << "# " << tstamp << ":" << rec_str << std::endl;
+      }
+
+      // Close file.
+      data_out.close();
+    } catch (const std::exception& e0) {
+      
+      // Show what happened.
+      std::cout << " HMC::saveRecordToTxt(): " << e0.what() << std::endl;
+
+      // Make sure the file is closed.
+      if (data_out.is_open()) {
+        data_out.close();
+      }
+      
+    }
   }
   
 }
