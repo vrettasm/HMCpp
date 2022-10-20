@@ -1,7 +1,9 @@
 #include <cmath>
+#include <ctime>
 #include <chrono>
 #include <fstream>
 #include <numeric>
+#include <iomanip>
 #include <iostream>
 
 #include "../include/auxiliary.hpp"
@@ -10,16 +12,10 @@
 namespace HamiltonianMC {
   
   HMC::HMC(CalculatesLogPosterior& _func, RandomNumberGenerator& _rng,
-           const boost::filesystem::path& save_path): n_samples(10000),
-           burn_in(1000), kappa(100), dtau(1.0e-2), upd_frequency(100),
-           func(_func), rng(_rng), save_dir(save_path) {
-        
-    // Create the string.
-    const std::string START_LOGGING(" [LOGGING NEW VALUES]");
-    
-    // Save the HEADER in the file.
-    saveRecordToTxt(START_LOGGING);
-  }
+           const std::string& _save_path):
+           n_samples(10000), burn_in(1000), kappa(100), dtau(1.0e-2),
+           upd_frequency(100), func(_func), rng(_rng), save_path(_save_path),
+           sim_ID(time(NULL) + getpid()) {};
 
   void HMC::set_n_samples(const int _n) {
     // Sanity check: positive samples.
@@ -63,10 +59,8 @@ namespace HamiltonianMC {
   }
 
   void HMC::set_upd_frequency(const int _n) {
-    
     // Sanity check: positive update frequency.
     if (_n > 0) {
-      
       upd_frequency = _n;
     } else {
       
@@ -76,6 +70,11 @@ namespace HamiltonianMC {
   }
 
   void HMC::set_scale(const std::vector<double>& scale0) {
+    // Sanity check: make sure we have data.
+    if (scale0.empty()) {
+      throw std::invalid_argument(" HMC::run:"
+                                  " Scaling vector is empty.");
+    }
     scale = scale0;
   }
 
@@ -143,6 +142,9 @@ namespace HamiltonianMC {
     
     // Accepted samples counter.
     size_t accepted = 0;
+    
+    // Save the HEADER in the file.
+    saveRecordToTxt(" [LOGGING NEW VALUES]");
     
     // Show first message.
     std::cout << "HMC++ started ..." << std::endl;
@@ -288,12 +290,9 @@ namespace HamiltonianMC {
       }
       
     } // <-- main loop ends here.
-    
-    // Create the FINAL string.
-    const std::string STOP_LOGGING(" [LOGGING STOPPED]\n");
-    
+        
     // Save the STRING in the file.
-    saveRecordToTxt(STOP_LOGGING);
+    saveRecordToTxt(" [LOGGING STOPPED]\n");
 
     // Get the final time.
     auto tf = std::chrono::steady_clock::now();
@@ -302,6 +301,15 @@ namespace HamiltonianMC {
     std::cout << "HMC++ finished [" << n_samples << "] in "
               << std::chrono::duration_cast<std::chrono::seconds>(tf - t0).count()
               << " second(s)." << std::endl;
+    
+    // Save the energy trace.
+    saveDataToFile(E_trace, "energy_trace.txt");
+    
+    // Save the acceptance ratios.
+    saveDataToFile(acc_ratio, "acceptance_ratios.txt");
+
+    // Save the leapfrog steps.
+    saveDataToFile(leap_step, "leapfrog_steps.txt");
 
     // Resize the (returned) sample storage.
     sample.resize(L, std::vector<double>(n_samples, NaN));
@@ -310,15 +318,16 @@ namespace HamiltonianMC {
     for (size_t l = 0; l < L; ++l) {
       
       for (size_t k = 0; k < n_samples; ++k) {
-        
         sample[l][k] = store[k][l];
       }
+      
+      // Save the samples of the l-th dimension.
+      saveDataToFile(sample[l], "samples.txt", true);
     }
 
   }
 
   std::vector< std::vector<double> > HMC::get_sample() const {
-    
     // Check if sample is empty.
     if (sample.empty()) {
       throw std::runtime_error(" HMC::get_sample:"
@@ -329,7 +338,6 @@ namespace HamiltonianMC {
   }
 
   std::vector<double> HMC::get_par_sample(const int idx) const {
-    
     // Check if sample[idx] is empty.
     if (sample[idx].empty()) {
       throw std::runtime_error(" HMC::get_par_sample:"
@@ -340,7 +348,6 @@ namespace HamiltonianMC {
   }
 
   std::vector<double> HMC::get_E_trace() const {
-    
     // Check if the energy trace vector is empty.
     if (E_trace.empty()) {
       throw std::runtime_error(" HMC::get_E_trace:"
@@ -351,7 +358,6 @@ namespace HamiltonianMC {
   }
 
   std::vector<double> HMC::get_acc_ratio() const {
-    
     // Check if the acceptance ratio vector is empty.
     if (acc_ratio.empty()) {
       throw std::runtime_error(" HMC::get_acc_ratio:"
@@ -362,7 +368,6 @@ namespace HamiltonianMC {
   }
 
   std::vector<double> HMC::get_leap_step_size() const {
-    
     // Check if the vector is empty.
     if (leap_step.empty()) {
       throw std::runtime_error(" HMC::get_leap_step_size:"
@@ -376,10 +381,15 @@ namespace HamiltonianMC {
     
     // Declare output file stream.
     std::ofstream data_out;
-        
+    
+    // Create the file name to store the data.
+    const boost::filesystem::path file_path(save_path +
+                                            std::to_string(sim_ID) +
+                                            "_screen_info.txt");
+    
     try {
       // Open file (in append mode).
-      data_out.open(save_dir.string().c_str(), std::ios::app);
+      data_out.open(file_path.string().c_str(), std::ios::app);
 
       // Create a timestamp.
       std::time_t tstamp = std::time(nullptr);
@@ -411,5 +421,50 @@ namespace HamiltonianMC {
     }
   }
   
+  void HMC::saveDataToFile(const std::vector<double>& data,
+                           const std::string& fname,
+                           const bool use_comma) const {
+    
+    // Declare output file stream.
+    std::ofstream data_out;
+    
+    // Create the file name to store the data.
+    const boost::filesystem::path file_path(save_path +
+                                            std::to_string(sim_ID) +
+                                            "_" + fname);
+    try {
+      
+      // Open file (in append mode).
+      data_out.open(file_path.string().c_str(), std::ios::app);
+      
+      // Copy all the data in the output stream.
+      for (size_t i = 0; i < data.size(); ++i) {
+        
+        // Use a fixed presicion (8 decimals)
+        data_out << std::fixed << std::setprecision(8) << data[i];
+        
+        // If the flag is true we use comma.
+        data_out << (use_comma ? "," : "\n");
+        
+      }
+      
+      // Final end of line.
+      data_out << std::endl;
+      
+      // Close file.
+      data_out.close();
+      
+    } catch (const std::exception& e0) {
+      
+      // Show what happened.
+      std::cout << " HMC::saveDataToFile(): " << e0.what() << std::endl;
+
+      // Make sure the file is closed.
+      if (data_out.is_open()) {
+        data_out.close();
+      }
+      
+    }
+  }
 }
 // End-of-File.

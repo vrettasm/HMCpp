@@ -48,9 +48,9 @@ namespace HamiltonianMC {
 
           @param rng: Reference to a random number generator.
           
-          @param save_path: File to save the runtime data. */
+          @param saves_path: Directory to save the runtime data. */
       HMC(CalculatesLogPosterior& func, RandomNumberGenerator& rng,
-          const boost::filesystem::path& save_path);
+          const std::string& save_path);
 
       /** @brief Set number of samples. */
       void set_n_samples(const int);
@@ -113,11 +113,20 @@ namespace HamiltonianMC {
       
       /** @brief Saves a record to a txt file.
 
-        It will append the data to the end of the file.
-        If the file does not exist it will create it.
+          It will append the data to the end of the file.
+          If the file does not exist it will create it.
 
-        @param rec the record to be saved. */
+          @param rec the record to be saved. */
       void saveRecordToTxt(const std::string& rec) const;
+      
+      /** @brief Save the HMC data of the sampling procedure in a file.
+
+          @param data vector to be stored.
+          @param fname for the data to be stored.
+          @param use_comma is used to append comma (or end of line). */
+      void saveDataToFile(const std::vector<double>& data,
+                          const std::string& fname,
+                          const bool use_comma=false) const;
 
     private:
 
@@ -142,8 +151,16 @@ namespace HamiltonianMC {
       /** Random number generator. */
       RandomNumberGenerator& rng;
       
-      /** Root for HMC output files. */
-      boost::filesystem::path save_dir;
+      /** Root direcotry for HMC output files. */
+      std::string save_path;
+      
+      /** This is the unique simulation id that is
+          used in the files creation.
+          
+          Note: This is created once (per object).
+          Repeated calls of the run method on the
+          same object with append the same files. */
+      const unsigned long sim_ID;
       
       /** Samples from all parameters. */
       std::vector< std::vector<double> > sample;
