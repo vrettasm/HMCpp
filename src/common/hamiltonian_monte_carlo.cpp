@@ -15,7 +15,7 @@ namespace HamiltonianMC {
            const std::string& _save_path):
            n_samples(10000), burn_in(1000), kappa(100), dtau(1.0e-2),
            upd_frequency(100), func(_func), rng(_rng), save_path(_save_path),
-           sim_ID(time(NULL) + getpid()) {};
+           sim_ID(0UL) {};
 
   void HMC::set_n_samples(const int _n) {
     // Sanity check: positive samples.
@@ -85,6 +85,9 @@ namespace HamiltonianMC {
       throw std::invalid_argument(" HMC::run:"
                                   " Starting position 'x0' is empty.");
     }
+    
+    // Generate a simulation ID.
+    sim_ID = time(NULL) + getpid();
 
     // Length of parameter vector.
     const size_t L = x0.size();

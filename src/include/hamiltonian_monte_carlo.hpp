@@ -155,12 +155,8 @@ namespace HamiltonianMC {
       std::string save_path;
       
       /** This is the unique simulation id that is
-          used in the files creation.
-          
-          Note: This is created once (per object).
-          Repeated calls of the run method on the
-          same object with append the same files. */
-      const unsigned long sim_ID;
+          used in the files creation. */
+      unsigned long sim_ID;
       
       /** Samples from all parameters. */
       std::vector< std::vector<double> > sample;
