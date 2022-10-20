@@ -21,7 +21,10 @@ Several implementation details are given in:
 
 ### Examples
 
-   Coming soon
+Some example on how to use this method can be found below:
+
+1. [Rosenbrock](examples/example_rosenbrock.cpp)
+2. [Multivariate Normal](examples/example_multivariate_normal.cpp)
 
 ### Unittests
 
