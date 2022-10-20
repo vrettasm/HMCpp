@@ -1,7 +1,5 @@
 .codelite/
-src/.codelite/
-src/src.project
-src/src.workspace
 Debug/
+examples/demo*
 Makefile
 HMCpp.*
