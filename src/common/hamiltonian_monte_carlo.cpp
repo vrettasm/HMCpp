@@ -154,12 +154,12 @@ namespace HamiltonianMC {
     
     // Get the first time.
     auto t0 = std::chrono::steady_clock::now();
-    
+        
     // Main sampling loop.
     // NOTE: index 'i' -> [burn_in-1 : n_samples]
     //       index 'j' -> [0: nsamples + burn_in]
     for (int i = (1-burn_in), j = 0; i < n_samples; ++i, ++j) {
-
+            
       // Sample momentum ~ N(mean=0.0, sigma=1.0).
       rng.gaussian<double>(p, 1.0);
 
@@ -172,7 +172,7 @@ namespace HamiltonianMC {
       // Copy the current states/gradients.
       std::vector<double> x_new = x_old;
       std::vector<double> g_new = g_old;
-
+      
       // Pick a random direction.
       const double _mu = (uniform_STEP[j] > 0.5) ? +1.0 : -1.0;
 
@@ -187,7 +187,7 @@ namespace HamiltonianMC {
         // State at 'l-th' position.
         x_new[l] += (scale[l]*_epsilon*p[l]);
       }
-
+      
       // K-th (leapfrog step) gradient.
       std::vector<double> gxk;
 
@@ -215,18 +215,18 @@ namespace HamiltonianMC {
           x_new[l] += (scale[l]*_epsilon*p[l]);
         }
       }
-
+      
       // Compute the energy at the new point.
       double E_new = func(x_new);
-      
+            
       // Check if something went wrong.
       if (not AuxiliaryNum::is_finite(E_new)) {
-        throw std::runtime_error(" HMC::run: Unexpected error occured! ");
+        throw std::runtime_error(" HMC::run: E_new is not finite! ");
       }
-
+            
       // Final gradient at 'xnew'.
       g_new = AuxiliaryNum::cdf_grad(func, x_new);
-
+      
       // Reset E_kin.
       E_kin = 0.0;
 

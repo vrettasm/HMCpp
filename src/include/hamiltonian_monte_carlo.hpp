@@ -1,5 +1,5 @@
-#ifndef __HAMILTONIANMONTECARLO_HPP_
-#define __HAMILTONIANMONTECARLO_HPP_
+#ifndef __HAMILTONIAN_MONTE_CARLO_HPP_
+#define __HAMILTONIAN_MONTE_CARLO_HPP_
 
 #include <string>
 #include <vector>
