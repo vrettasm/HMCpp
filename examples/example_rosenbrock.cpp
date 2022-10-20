@@ -42,7 +42,7 @@ class Rosenbrock: public HamiltonianMC::CalculatesLogPosterior {
 
 
 int main(int argc, char* argv[]) {
-
+  // Display info.
   std::cout << " Rosenbrock example: " << std::endl;
 
   // Create a rosenbrock object
