@@ -306,27 +306,37 @@ namespace HamiltonianMC {
               << " second(s)." << std::endl;
     
     // Save the energy trace.
+    std::cout << " Saving energy trace ...";
     saveDataToFile(E_trace, "energy_trace.txt");
+    std::cout << " done." << std::endl;
     
     // Save the acceptance ratios.
+    std::cout << " Saving acceptance ratios ...";
     saveDataToFile(acc_ratio, "acceptance_ratios.txt");
+    std::cout << " done." << std::endl;
 
     // Save the leapfrog steps.
+    std::cout << " Saving leapfrog steps ...";
     saveDataToFile(leap_step, "leapfrog_steps.txt");
+    std::cout << " done." << std::endl;
 
     // Resize the (returned) sample storage.
     sample.resize(L, std::vector<double>(n_samples, NaN));
 
+    // Display information about saving data.
+    std::cout << " Saving sampled values ...";
+    
     // Transpose the sampled values.
     for (size_t l = 0; l < L; ++l) {
       
       for (size_t k = 0; k < n_samples; ++k) {
-        sample[l][k] = store[k][l];
+        sample[l][k] = store[k][l]; 
       }
       
       // Save the samples of the l-th dimension.
       saveDataToFile(sample[l], "samples.txt", true);
     }
+    std::cout << " done." << std::endl;
 
   }
 
