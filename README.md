@@ -27,10 +27,10 @@ Some example on how to use this method can be found below:
 
   > g++ -std=c++11 -Wall -g ../src/common/*.cpp example_rosenbrock.cpp -o demo02
 
-2. [Multivariate Normal](examples/example_multivariate_normal.cpp This examples
+2. [Multivariate Normal](examples/example_multivariate_normal.cpp) This example
   uses "Eigen" to perform the matrix/vector operations of the pdfs easier. This
   library is need ONLY for the example to run NOT for the HMC method.
-  
+
   Compile with:
 
   > g++ -std=c++11 -Wall -g -I/usr/local/include/eigen3/ ../src/common/*.cpp
