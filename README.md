@@ -33,8 +33,8 @@ The examples have been compiled (successfully) on OSX10.14 with:
 
   > g++ -std=c++11 -Wall -g ../src/common/*.cpp example_rosenbrock.cpp -o demo01
 
-2. [Multivariate Normal](examples/example_multivariate_normal.cpp) This example
-  uses "Eigen/Dense" to perform the matrix/vector operations of the pdfs. This
+2. [Multivariate Normal](examples/example_multivariate_normal.cpp) example uses
+  "Eigen/Dense" to perform the matrix/vector operations of the pdfs. This
   library is need ONLY for the example to run NOT for the HMC method.
 
   Compile with:
